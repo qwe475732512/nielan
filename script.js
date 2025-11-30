@@ -3,7 +3,7 @@ let customSkillData = { "f-skill": [], "v-skill": [] };
 let customGachaData = { bg: {}, xp: {} };
 let customIdCounter = { bg: 1, xp: 1 };
 
-// 核心：奖品图片映射表（必须与实际文件名一致！）
+// 核心：奖品图片映射表（必须与本地images文件夹内的文件名完全一致！）
 const prizeImgMap = {
   "hero": {
     "李寻欢": "lixunhuan", "万钧": "wanjun", "蓝梦": "lanmeng", "希拉": "xila",
@@ -24,17 +24,16 @@ const prizeImgMap = {
   }
 };
 
-// Netlify站点域名（替换为你的实际域名！）
+// 环境切换：本地运行用false，Netlify部署用true
+const IS_NETLIFY = false; 
+// Netlify站点域名（部署时改为true后生效）
 const NETLIFY_DOMAIN = "https://buhuoinielan.netlify.app";
 
-// 页面DOM加载完成后立即执行（优化执行顺序）
+// 页面DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
-  // 优先执行核心功能
   bindMainTabSwitch();
   bindSubTabSwitch();
   bindMainGachaEvent();
-  
-  // 非核心功能延迟执行，避免首屏卡顿
   setTimeout(() => {
     bindSkillSaveEvent();
     bindSkillGachaEvent();
@@ -49,72 +48,58 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * 1. 一级标签切换逻辑（薄荷奶绿/小泡芙）- 防抖优化
+ * 1. 一级标签切换（防抖）
  */
 function bindMainTabSwitch() {
   const mainTabBtns = document.querySelectorAll('.main-tab-btn');
   const mainTabContainers = document.querySelectorAll('.main-tab-container');
-  let isSwitching = false; // 防抖标记
+  let isSwitching = false;
 
   mainTabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       if (isSwitching) return;
       isSwitching = true;
-
       mainTabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       const targetId = btn.getAttribute('data-target');
       mainTabContainers.forEach(container => {
-        container.classList.remove('active');
-        if (container.id === targetId) {
-          container.classList.add('active');
-        }
+        container.classList.toggle('active', container.id === targetId);
       });
-
-      setTimeout(() => {
-        isSwitching = false;
-      }, 100);
+      setTimeout(() => isSwitching = false, 100);
     });
   });
 }
 
 /**
- * 2. 二级标签切换逻辑（武器/远程/英雄/自定义）- 防抖优化
+ * 2. 二级标签切换（防抖）
  */
 function bindSubTabSwitch() {
   const subTabBtns = document.querySelectorAll('.sub-tab-btn');
   const gachaContainers = document.querySelectorAll('.gacha-container');
-  let isSwitching = false; // 防抖标记
+  let isSwitching = false;
 
   subTabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       if (isSwitching) return;
       isSwitching = true;
-
       subTabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       const targetId = btn.getAttribute('data-target');
       gachaContainers.forEach(container => {
-        container.classList.remove('active');
-        if (container.id === targetId) {
-          container.classList.add('active');
-        }
+        container.classList.toggle('active', container.id === targetId);
       });
-
-      setTimeout(() => {
-        isSwitching = false;
-      }, 100);
+      setTimeout(() => isSwitching = false, 100);
     });
   });
 }
 
 /**
- * 3. 核心：武器/远程/英雄抽卡逻辑（修改为Netlify绝对路径 + 重试逻辑）
+ * 3. 核心抽卡逻辑（适配本地/Netlify双环境 + 图片加载兜底）
  */
 function bindMainGachaEvent() {
   const gachaBtns = document.querySelectorAll('.gacha-btn:not(.skill-gacha-btn):not(.custom-gacha-btn)');
+  // 本地默认兜底图片（需在images文件夹下新增default.webp）
+  const DEFAULT_IMG = './images/default.webp';
 
   gachaBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -129,48 +114,63 @@ function bindMainGachaEvent() {
       resultName.textContent = '抽取中...';
       this.disabled = true;
 
-      // 模拟抽卡延迟
       setTimeout(() => {
         try {
-          // 随机抽取奖品
           const randomIndex = Math.floor(Math.random() * prizes.length);
           const selectedPrize = prizes[randomIndex];
-          // 获取图片名（映射）
           const imgName = prizeImgMap[type][selectedPrize];
-          // 核心修改：使用Netlify绝对路径
-          const imgPath = `${NETLIFY_DOMAIN}/images/${type}/${imgName}.webp`;
+          
+          // 动态切换本地/Netlify路径
+          let imgPath = '';
+          if (IS_NETLIFY) {
+            imgPath = `${NETLIFY_DOMAIN}/images/${type}/${imgName}.webp`;
+          } else {
+            imgPath = `./images/${type}/${imgName}.webp`;
+          }
 
-          // 加载图片（确保加载成功后显示 + 重试逻辑）
-          const img = new Image();
-          img.onload = function() {
-            resultImg.src = imgPath;
-            resultImg.alt = selectedPrize;
-            resultImg.style.display = 'block'; // 加载成功才显示
-            resultName.textContent = selectedPrize;
-            // 强制触发重绘，避免渲染延迟
-            resultImg.offsetHeight;
-          };
-          img.onerror = function() {
-            // 第一次加载失败，重试一次
-            const retryImg = new Image();
-            retryImg.onload = function() {
-              resultImg.src = imgPath;
+          // 加载图片（双重重试 + 兜底）
+          const loadImg = (path, retry = 0) => {
+            const img = new Image();
+            img.onload = () => {
+              resultImg.src = path;
+              resultImg.alt = selectedPrize;
               resultImg.style.display = 'block';
               resultName.textContent = selectedPrize;
             };
-            retryImg.onerror = function() {
-              // 最终失败仅提示文字
-              resultName.textContent = `${selectedPrize}（图片缺失）`;
+            img.onerror = () => {
+              if (retry < 1) {
+                // 第一次失败重试
+                loadImg(path, retry + 1);
+              } else {
+                // 最终失败用兜底图/文字
+                if (type === 'hero' || type === 'weapon' || type === 'remote') {
+                  // 尝试加载兜底图
+                  const defaultImg = new Image();
+                  defaultImg.onload = () => {
+                    resultImg.src = DEFAULT_IMG;
+                    resultImg.style.display = 'block';
+                    resultName.textContent = `${selectedPrize}（图片缺失）`;
+                  };
+                  defaultImg.onerror = () => {
+                    resultImg.style.display = 'none';
+                    resultName.textContent = `${selectedPrize}（图片缺失）`;
+                  };
+                  defaultImg.src = DEFAULT_IMG;
+                } else {
+                  resultImg.style.display = 'none';
+                  resultName.textContent = `${selectedPrize}（图片缺失）`;
+                }
+              }
             };
-            retryImg.src = imgPath;
+            img.src = path;
           };
-          // 强制触发加载
-          img.src = imgPath;
+
+          // 启动图片加载
+          loadImg(imgPath);
         } catch (e) {
           resultName.textContent = '抽取失败，请重试';
           console.error('抽卡出错：', e);
         } finally {
-          // 恢复按钮
           this.disabled = false;
         }
       }, 500);
@@ -183,14 +183,13 @@ function bindMainGachaEvent() {
  */
 function bindSkillSaveEvent() {
   const saveBtns = document.querySelectorAll('.skill-save-btn');
-
   saveBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const skillType = btn.getAttribute('data-skill-type');
       const inputBox = btn.closest('.skill-wheel-card').querySelector('.skill-custom-input');
       const resultArea = btn.closest('.skill-wheel-card').querySelector('.skill-result-name');
-
       const inputContent = inputBox.value.trim().split('\n').filter(item => item.trim() !== '');
+      
       if (inputContent.length === 0) {
         resultArea.textContent = "⚠️ 请输入至少一个内容！";
         resultArea.style.color = "#ff4444";
@@ -200,7 +199,6 @@ function bindSkillSaveEvent() {
       customSkillData[skillType] = inputContent;
       resultArea.textContent = "✅ 保存成功！";
       resultArea.style.color = "#2ecc71";
-
       setTimeout(() => {
         if (resultArea.textContent.includes("保存成功")) {
           resultArea.textContent = "未抽取";
@@ -216,7 +214,6 @@ function bindSkillSaveEvent() {
  */
 function bindSkillGachaEvent() {
   const skillBtns = document.querySelectorAll('.skill-gacha-btn');
-
   skillBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       try {
@@ -237,10 +234,8 @@ function bindSkillGachaEvent() {
         setTimeout(() => {
           const randomIndex = Math.floor(Math.random() * skillList.length);
           const selectedSkill = skillList[randomIndex];
-
           resultArea.textContent = `抽到：${selectedSkill}`;
           resultArea.style.color = skillType === 'f-skill' ? '#3399ff' : '#ff4444';
-
           this.disabled = false;
           this.textContent = skillType === 'f-skill' ? '抽取F技能' : '抽取V技能';
         }, 300);
@@ -260,12 +255,8 @@ function bindSkillGachaEvent() {
  * 6. 新增自定义抽卡逻辑
  */
 function bindAddCustomEvent(type) {
-  const addBtn = type === 'bg' 
-    ? document.querySelector('.add-custom-btn.bg-green') 
-    : document.querySelector('.add-custom-btn.bg-pink');
-  const wrapper = type === 'bg' 
-    ? document.querySelector('.custom-container-wrapper.bg-green-wrapper') 
-    : document.querySelector('.custom-container-wrapper.bg-pink-wrapper');
+  const addBtn = document.querySelector(`.add-custom-btn.${type === 'bg' ? 'bg-green' : 'bg-pink'}`);
+  const wrapper = document.querySelector(`.custom-container-wrapper.${type === 'bg' ? 'bg-green-wrapper' : 'bg-pink-wrapper'}`);
   const colorClass = type === 'bg' ? 'bg-green' : 'bg-pink';
 
   if (!addBtn || !wrapper) return;
@@ -313,7 +304,7 @@ function bindAddCustomEvent(type) {
 }
 
 /**
- * 7. 自定义抽卡配置保存逻辑（内存优化）
+ * 7. 自定义抽卡配置保存逻辑
  */
 function bindCustomConfigEvent(type, customId) {
   const dataId = `${type}-${customId}`;
@@ -339,11 +330,9 @@ function bindCustomConfigEvent(type, customId) {
         return;
       }
 
-      // 释放旧图片URL，避免内存泄漏
+      // 释放旧图片URL
       if (customGachaData[type][customId]?.imgMap) {
-        Object.values(customGachaData[type][customId].imgMap).forEach(url => {
-          URL.revokeObjectURL(url);
-        });
+        Object.values(customGachaData[type][customId].imgMap).forEach(url => URL.revokeObjectURL(url));
       }
 
       // 处理上传图片
@@ -351,30 +340,18 @@ function bindCustomConfigEvent(type, customId) {
       const imgMap = {};
       if (files.length > 0) {
         prizes.forEach((prize, index) => {
-          if (index < files.length) {
-            const file = files[index];
-            if (file.size > 5 * 1024 * 1024) {
-              resultName.textContent = "⚠️ 图片大小不能超过5MB！";
-              resultName.style.color = "#ff4444";
-              return;
-            }
-            imgMap[prize] = URL.createObjectURL(file);
+          if (index < files.length && files[index].size <= 5 * 1024 * 1024) {
+            imgMap[prize] = URL.createObjectURL(files[index]);
           }
         });
       }
 
-      customGachaData[type][customId] = {
-        btnName: btnName,
-        prizes: prizes,
-        imgMap: imgMap
-      };
-
+      customGachaData[type][customId] = { btnName, prizes, imgMap };
       customGachaBtn.textContent = btnName;
       customGachaBtn.disabled = false;
 
       resultName.textContent = "✅ 配置保存成功！可开始抽取";
       resultName.style.color = "#2ecc71";
-
       setTimeout(() => {
         if (resultName.textContent.includes("保存成功")) {
           resultName.textContent = "未抽取";
@@ -412,7 +389,6 @@ function bindCustomGachaEvent(type, customId) {
       }
 
       const { btnName, prizes, imgMap } = config;
-
       resultImg.style.display = 'none';
       resultName.textContent = "抽取中...";
       this.disabled = true;
@@ -425,11 +401,11 @@ function bindCustomGachaEvent(type, customId) {
 
         if (imgUrl) {
           const img = new Image();
-          img.onload = function() {
+          img.onload = () => {
             resultImg.src = imgUrl;
             resultImg.style.display = 'block';
           };
-          img.onerror = function() {
+          img.onerror = () => {
             resultImg.style.display = 'none';
             resultName.textContent = `${selectedPrize}（图片加载失败）`;
           };
@@ -463,11 +439,8 @@ function initImgErrorHandler() {
         resultName.textContent = `${resultName.textContent.split('（')[0]}（图片加载失败）`;
       }
     };
-    // 图片加载超时兜底
     img.dataset.loadTimeout = setTimeout(() => {
-      if (!img.complete) {
-        img.onerror();
-      }
+      if (!img.complete) img.onerror();
     }, 5000);
   });
 }
