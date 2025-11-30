@@ -27,7 +27,7 @@ const prizeImgMap = {
 // 环境切换：部署后改为true，本地运行改为false
 const IS_NETLIFY = true; 
 // 替换为你Netlify/Vercel的实际域名（必须准确，不带/结尾）
-const NETLIFY_DOMAIN = "https://nielanlaodi.netlify.app";
+const NETLIFY_DOMAIN = "https://nielan.vercel.app/";
 
 // 页面DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
