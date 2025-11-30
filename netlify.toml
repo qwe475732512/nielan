@@ -8,13 +8,12 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
     Access-Control-Allow-Origin = "*" # 跨域图片加载
-    Content-Encoding = "gzip" # 启用Gzip压缩
 
 [[headers]]
   # HTML不缓存，确保更新后及时生效
   for = "/*.html"
   [headers.values]
-    Cache-Control = "no-cache"
+    Cache-Control = "no-cache, no-store, must-revalidate" # 强化不缓存
     Pragma = "no-cache"
     Expires = "0"
 
@@ -32,7 +31,7 @@
     Cache-Control = "public, max-age=31536000, immutable"
     Access-Control-Allow-Origin = "*"
 
-# 404兜底，避免页面白屏
+# 404兜底（仅页面级，保留资源404）
 [[redirects]]
   from = "/*"
   to = "/index.html"

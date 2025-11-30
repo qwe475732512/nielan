@@ -24,10 +24,10 @@ const prizeImgMap = {
   }
 };
 
-// 环境切换：本地运行用false，Netlify部署用true
-const IS_NETLIFY = false; 
-// Netlify站点域名（部署时改为true后生效）
-const NETLIFY_DOMAIN = "https://buhuoinielan.netlify.app";
+// 环境切换：部署后改为true，本地运行改为false
+const IS_NETLIFY = true; 
+// 替换为你Netlify/Vercel的实际域名（必须准确，不带/结尾）
+const NETLIFY_DOMAIN = "https://nielanlaodi.netlify.app";
 
 // 页面DOM加载完成后执行
 document.addEventListener('DOMContentLoaded', function() {
@@ -99,7 +99,7 @@ function bindSubTabSwitch() {
 function bindMainGachaEvent() {
   const gachaBtns = document.querySelectorAll('.gacha-btn:not(.skill-gacha-btn):not(.custom-gacha-btn)');
   // 本地默认兜底图片（需在images文件夹下新增default.webp）
-  const DEFAULT_IMG = './images/default.webp';
+  const DEFAULT_IMG = IS_NETLIFY ? `${NETLIFY_DOMAIN}/images/default.webp` : './images/default.webp';
 
   gachaBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -444,3 +444,21 @@ function initImgErrorHandler() {
     }, 5000);
   });
 }
+
+/**
+ * 页面卸载时释放所有图片URL，避免内存泄漏
+ */
+window.addEventListener('beforeunload', () => {
+  // 释放自定义抽卡的图片URL
+  Object.values(customGachaData).forEach(typeData => {
+    Object.values(typeData).forEach(config => {
+      if (config.imgMap) {
+        Object.values(config.imgMap).forEach(url => URL.revokeObjectURL(url));
+      }
+    });
+  });
+  // 清除所有图片加载超时定时器
+  document.querySelectorAll('img').forEach(img => {
+    clearTimeout(img.dataset.loadTimeout);
+  });
+});
