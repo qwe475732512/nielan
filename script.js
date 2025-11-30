@@ -26,32 +26,38 @@ const prizeImgMap = {
 
 // 页面DOM加载完成后立即执行（优化执行顺序）
 document.addEventListener('DOMContentLoaded', function() {
-  // 绑定所有事件（全功能）
+  // 优先执行核心功能
   bindMainTabSwitch();
   bindSubTabSwitch();
   bindMainGachaEvent();
-  bindSkillSaveEvent();
-  bindSkillGachaEvent();
-  bindAddCustomEvent('bg');
-  bindCustomConfigEvent('bg', 1);
-  bindCustomGachaEvent('bg', 1);
-  bindAddCustomEvent('xp');
-  bindCustomConfigEvent('xp', 1);
-  bindCustomGachaEvent('xp', 1);
-
-  // 初始化图片错误处理
-  initImgErrorHandler();
+  
+  // 非核心功能延迟执行，避免首屏卡顿
+  setTimeout(() => {
+    bindSkillSaveEvent();
+    bindSkillGachaEvent();
+    bindAddCustomEvent('bg');
+    bindCustomConfigEvent('bg', 1);
+    bindCustomGachaEvent('bg', 1);
+    bindAddCustomEvent('xp');
+    bindCustomConfigEvent('xp', 1);
+    bindCustomGachaEvent('xp', 1);
+    initImgErrorHandler();
+  }, 100);
 });
 
 /**
- * 1. 一级标签切换逻辑（薄荷奶绿/小泡芙）
+ * 1. 一级标签切换逻辑（薄荷奶绿/小泡芙）- 防抖优化
  */
 function bindMainTabSwitch() {
   const mainTabBtns = document.querySelectorAll('.main-tab-btn');
   const mainTabContainers = document.querySelectorAll('.main-tab-container');
+  let isSwitching = false; // 防抖标记
 
   mainTabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+      if (isSwitching) return;
+      isSwitching = true;
+
       mainTabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
@@ -62,19 +68,27 @@ function bindMainTabSwitch() {
           container.classList.add('active');
         }
       });
+
+      setTimeout(() => {
+        isSwitching = false;
+      }, 100);
     });
   });
 }
 
 /**
- * 2. 二级标签切换逻辑（武器/远程/英雄/自定义）
+ * 2. 二级标签切换逻辑（武器/远程/英雄/自定义）- 防抖优化
  */
 function bindSubTabSwitch() {
   const subTabBtns = document.querySelectorAll('.sub-tab-btn');
   const gachaContainers = document.querySelectorAll('.gacha-container');
+  let isSwitching = false; // 防抖标记
 
   subTabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+      if (isSwitching) return;
+      isSwitching = true;
+
       subTabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
@@ -85,12 +99,16 @@ function bindSubTabSwitch() {
           container.classList.add('active');
         }
       });
+
+      setTimeout(() => {
+        isSwitching = false;
+      }, 100);
     });
   });
 }
 
 /**
- * 3. 核心：武器/远程/英雄抽卡逻辑（修复Netlify路径）
+ * 3. 核心：武器/远程/英雄抽卡逻辑（修复Netlify路径+错误兜底）
  */
 function bindMainGachaEvent() {
   const gachaBtns = document.querySelectorAll('.gacha-btn:not(.skill-gacha-btn):not(.custom-gacha-btn)');
@@ -110,31 +128,36 @@ function bindMainGachaEvent() {
 
       // 模拟抽卡延迟
       setTimeout(() => {
-        // 随机抽取奖品
-        const randomIndex = Math.floor(Math.random() * prizes.length);
-        const selectedPrize = prizes[randomIndex];
-        // 获取图片名（映射）
-        const imgName = prizeImgMap[type][selectedPrize];
-        // 修复：使用相对路径（适配Netlify）
-        const imgPath = `./images/${type}/${imgName}.webp`;
+        try {
+          // 随机抽取奖品
+          const randomIndex = Math.floor(Math.random() * prizes.length);
+          const selectedPrize = prizes[randomIndex];
+          // 获取图片名（映射）
+          const imgName = prizeImgMap[type][selectedPrize];
+          // 修复：使用相对路径（适配Netlify）
+          const imgPath = `./images/${type}/${imgName}.webp`;
 
-        // 加载图片（确保加载成功后显示）
-        const img = new Image();
-        img.onload = function() {
-          resultImg.src = imgPath;
-          resultImg.alt = selectedPrize;
-          resultImg.style.display = 'block'; // 加载成功才显示
-          resultName.textContent = selectedPrize;
-        };
-        img.onerror = function() {
-          // 加载失败仅提示文字，不显示占位图
-          resultName.textContent = `${selectedPrize}（图片缺失）`;
-        };
-        // 强制触发加载
-        img.src = imgPath;
-
-        // 恢复按钮
-        this.disabled = false;
+          // 加载图片（确保加载成功后显示）
+          const img = new Image();
+          img.onload = function() {
+            resultImg.src = imgPath;
+            resultImg.alt = selectedPrize;
+            resultImg.style.display = 'block'; // 加载成功才显示
+            resultName.textContent = selectedPrize;
+          };
+          img.onerror = function() {
+            // 加载失败仅提示文字，不显示占位图
+            resultName.textContent = `${selectedPrize}（图片缺失）`;
+          };
+          // 强制触发加载
+          img.src = imgPath;
+        } catch (e) {
+          resultName.textContent = '抽取失败，请重试';
+          console.error('抽卡出错：', e);
+        } finally {
+          // 恢复按钮
+          this.disabled = false;
+        }
       }, 500);
     });
   });
@@ -181,30 +204,39 @@ function bindSkillGachaEvent() {
 
   skillBtns.forEach(btn => {
     btn.addEventListener('click', function() {
-      const skillType = this.getAttribute('data-skill-type');
-      const resultArea = this.closest('.skill-wheel-card').querySelector('.skill-result-name');
-      const skillList = customSkillData[skillType];
+      try {
+        const skillType = this.getAttribute('data-skill-type');
+        const resultArea = this.closest('.skill-wheel-card').querySelector('.skill-result-name');
+        const skillList = customSkillData[skillType];
 
-      if (skillList.length === 0) {
-        resultArea.textContent = "⚠️ 请先保存内容！";
+        if (skillList.length === 0) {
+          resultArea.textContent = "⚠️ 请先保存内容！";
+          resultArea.style.color = "#ff4444";
+          return;
+        }
+
+        this.disabled = true;
+        this.textContent = "抽取中...";
+        resultArea.textContent = "抽取中...";
+
+        setTimeout(() => {
+          const randomIndex = Math.floor(Math.random() * skillList.length);
+          const selectedSkill = skillList[randomIndex];
+
+          resultArea.textContent = `抽到：${selectedSkill}`;
+          resultArea.style.color = skillType === 'f-skill' ? '#3399ff' : '#ff4444';
+
+          this.disabled = false;
+          this.textContent = skillType === 'f-skill' ? '抽取F技能' : '抽取V技能';
+        }, 300);
+      } catch (e) {
+        const resultArea = this.closest('.skill-wheel-card').querySelector('.skill-result-name');
+        resultArea.textContent = "⚠️ 抽取失败，请重试";
         resultArea.style.color = "#ff4444";
-        return;
-      }
-
-      this.disabled = true;
-      this.textContent = "抽取中...";
-      resultArea.textContent = "抽取中...";
-
-      setTimeout(() => {
-        const randomIndex = Math.floor(Math.random() * skillList.length);
-        const selectedSkill = skillList[randomIndex];
-
-        resultArea.textContent = `抽到：${selectedSkill}`;
-        resultArea.style.color = skillType === 'f-skill' ? '#3399ff' : '#ff4444';
-
         this.disabled = false;
-        this.textContent = skillType === 'f-skill' ? '抽取F技能' : '抽取V技能';
-      }, 300);
+        this.textContent = this.getAttribute('data-skill-type') === 'f-skill' ? '抽取F技能' : '抽取V技能';
+        console.error('技能抽取出错：', e);
+      }
     });
   });
 }
@@ -266,7 +298,7 @@ function bindAddCustomEvent(type) {
 }
 
 /**
- * 7. 自定义抽卡配置保存逻辑
+ * 7. 自定义抽卡配置保存逻辑（内存优化）
  */
 function bindCustomConfigEvent(type, customId) {
   const dataId = `${type}-${customId}`;
@@ -282,50 +314,63 @@ function bindCustomConfigEvent(type, customId) {
   const resultName = customArea.querySelector('.custom-result-name');
 
   saveConfigBtn.addEventListener('click', () => {
-    const btnName = btnNameInput.value.trim() || "自定义抽取";
-    const prizes = prizeInput.value.trim().split('\n').filter(item => item.trim() !== '');
-    
-    if (prizes.length === 0) {
-      resultName.textContent = "⚠️ 请输入至少一个内容！";
-      resultName.style.color = "#ff4444";
-      return;
-    }
-
-    // 处理上传图片
-    const files = imgInput.files;
-    const imgMap = {};
-    if (files.length > 0) {
-      prizes.forEach((prize, index) => {
-        if (index < files.length) {
-          const file = files[index];
-          if (file.size > 5 * 1024 * 1024) {
-            resultName.textContent = "⚠️ 图片大小不能超过5MB！";
-            resultName.style.color = "#ff4444";
-            return;
-          }
-          imgMap[prize] = URL.createObjectURL(file);
-        }
-      });
-    }
-
-    customGachaData[type][customId] = {
-      btnName: btnName,
-      prizes: prizes,
-      imgMap: imgMap
-    };
-
-    customGachaBtn.textContent = btnName;
-    customGachaBtn.disabled = false;
-
-    resultName.textContent = "✅ 配置保存成功！可开始抽取";
-    resultName.style.color = "#2ecc71";
-
-    setTimeout(() => {
-      if (resultName.textContent.includes("保存成功")) {
-        resultName.textContent = "未抽取";
-        resultName.style.color = "#333";
+    try {
+      const btnName = btnNameInput.value.trim() || "自定义抽取";
+      const prizes = prizeInput.value.trim().split('\n').filter(item => item.trim() !== '');
+      
+      if (prizes.length === 0) {
+        resultName.textContent = "⚠️ 请输入至少一个内容！";
+        resultName.style.color = "#ff4444";
+        return;
       }
-    }, 3000);
+
+      // 释放旧图片URL，避免内存泄漏
+      if (customGachaData[type][customId]?.imgMap) {
+        Object.values(customGachaData[type][customId].imgMap).forEach(url => {
+          URL.revokeObjectURL(url);
+        });
+      }
+
+      // 处理上传图片
+      const files = imgInput.files;
+      const imgMap = {};
+      if (files.length > 0) {
+        prizes.forEach((prize, index) => {
+          if (index < files.length) {
+            const file = files[index];
+            if (file.size > 5 * 1024 * 1024) {
+              resultName.textContent = "⚠️ 图片大小不能超过5MB！";
+              resultName.style.color = "#ff4444";
+              return;
+            }
+            imgMap[prize] = URL.createObjectURL(file);
+          }
+        });
+      }
+
+      customGachaData[type][customId] = {
+        btnName: btnName,
+        prizes: prizes,
+        imgMap: imgMap
+      };
+
+      customGachaBtn.textContent = btnName;
+      customGachaBtn.disabled = false;
+
+      resultName.textContent = "✅ 配置保存成功！可开始抽取";
+      resultName.style.color = "#2ecc71";
+
+      setTimeout(() => {
+        if (resultName.textContent.includes("保存成功")) {
+          resultName.textContent = "未抽取";
+          resultName.style.color = "#333";
+        }
+      }, 3000);
+    } catch (e) {
+      resultName.textContent = "⚠️ 配置保存失败";
+      resultName.style.color = "#ff4444";
+      console.error('自定义配置出错：', e);
+    }
   });
 }
 
@@ -343,42 +388,51 @@ function bindCustomGachaEvent(type, customId) {
   const resultName = customArea.querySelector('.custom-result-name');
 
   customGachaBtn.addEventListener('click', function() {
-    const config = customGachaData[type][customId];
-    if (!config || config.prizes.length === 0) {
-      resultName.textContent = "⚠️ 请先配置抽卡内容！";
-      resultName.style.color = "#ff4444";
-      return;
-    }
-
-    const { btnName, prizes, imgMap } = config;
-
-    resultImg.style.display = 'none';
-    resultName.textContent = "抽取中...";
-    this.disabled = true;
-    this.textContent = "抽取中...";
-
-    setTimeout(() => {
-      const randomIndex = Math.floor(Math.random() * prizes.length);
-      const selectedPrize = prizes[randomIndex];
-      const imgUrl = imgMap[selectedPrize] || "";
-
-      if (imgUrl) {
-        const img = new Image();
-        img.onload = function() {
-          resultImg.src = imgUrl;
-          resultImg.style.display = 'block';
-        };
-        img.onerror = function() {
-          resultImg.style.display = 'none';
-          resultName.textContent = `${selectedPrize}（图片加载失败）`;
-        };
-        img.src = imgUrl;
+    try {
+      const config = customGachaData[type][customId];
+      if (!config || config.prizes.length === 0) {
+        resultName.textContent = "⚠️ 请先配置抽卡内容！";
+        resultName.style.color = "#ff4444";
+        return;
       }
 
-      resultName.textContent = selectedPrize;
+      const { btnName, prizes, imgMap } = config;
+
+      resultImg.style.display = 'none';
+      resultName.textContent = "抽取中...";
+      this.disabled = true;
+      this.textContent = "抽取中...";
+
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * prizes.length);
+        const selectedPrize = prizes[randomIndex];
+        const imgUrl = imgMap[selectedPrize] || "";
+
+        if (imgUrl) {
+          const img = new Image();
+          img.onload = function() {
+            resultImg.src = imgUrl;
+            resultImg.style.display = 'block';
+          };
+          img.onerror = function() {
+            resultImg.style.display = 'none';
+            resultName.textContent = `${selectedPrize}（图片加载失败）`;
+          };
+          img.src = imgUrl;
+        }
+
+        resultName.textContent = selectedPrize;
+        this.disabled = false;
+        this.textContent = btnName;
+      }, 300);
+    } catch (e) {
+      resultName.textContent = "⚠️ 抽取失败，请重试";
+      resultName.style.color = "#ff4444";
       this.disabled = false;
-      this.textContent = btnName;
-    }, 300);
+      const config = customGachaData[type][customId];
+      this.textContent = config?.btnName || "自定义抽取";
+      console.error('自定义抽卡出错：', e);
+    }
   });
 }
 
@@ -391,8 +445,14 @@ function initImgErrorHandler() {
       this.style.display = 'none';
       const resultName = this.closest('.result-box')?.querySelector('.result-name');
       if (resultName && !resultName.textContent.includes("图片")) {
-        resultName.textContent += "（图片加载失败）";
+        resultName.textContent = `${resultName.textContent.split('（')[0]}（图片加载失败）`;
       }
     };
+    // 图片加载超时兜底
+    img.dataset.loadTimeout = setTimeout(() => {
+      if (!img.complete) {
+        img.onerror();
+      }
+    }, 5000);
   });
 }

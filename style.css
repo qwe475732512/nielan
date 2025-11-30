@@ -4,6 +4,7 @@
   padding: 0;
   box-sizing: border-box;
   font-family: "微软雅黑", sans-serif;
+  transform: translateZ(0); /* 硬件加速，解决动画卡顿 */
 }
 
 body {
@@ -58,9 +59,10 @@ body {
 .scroll-img-list {
   display: flex;
   width: 200%;
-  animation-duration: 80s;
+  animation-duration: 120s; /* 降低滚动速度，减少CPU消耗 */
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  transform: translate3d(0, 0, 0); /* 强化硬件加速 */
 }
 
 .scroll-row-1 .scroll-img-list,
@@ -583,5 +585,10 @@ body {
     max-width: 100px !important;
     min-width: 60px !important;
     margin: 0 8px !important;
+  }
+  /* 移动端触摸优化 */
+  body {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 }
