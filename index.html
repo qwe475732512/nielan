@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>捏蓝大王抽卡界面</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 预加载核心图片，提升加载速度 -->
+  <link rel="preload" as="image" href="./images/hero/huwei.webp" type="image/webp">
+  <link rel="preload" as="image" href="./images/weapon/feidao.webp" type="image/webp">
+  <link rel="preload" as="image" href="./images/remote/gongjian.webp" type="image/webp">
+</head>
+<body>
+  <!-- 背景滚动容器 -->
+  <div class="bg-scroll-container">
+    <div class="scroll-row scroll-row-1">
+      <div class="scroll-img-list">
+        <img class="scroll-img" src="./images/bg/111.webp" alt="背景图1" loading="lazy">
+        <img class="scroll-img" src="./images/bg/222.webp" alt="背景图2" loading="lazy">
+        <img class="scroll-img" src="./images/bg/333.webp" alt="背景图3" loading="lazy">
+        <img class="scroll-img" src="./images/bg/444.webp" alt="背景图4" loading="lazy">
+        <img class="scroll-img" src="./images/bg/555.webp" alt="背景图5" loading="lazy">
+        <img class="scroll-img" src="./images/bg/666.webp" alt="背景图6" loading="lazy">
+        <img class="scroll-img" src="./images/bg/777.webp" alt="背景图7" loading="lazy">
+        <img class="scroll-img" src="./images/bg/888.webp" alt="背景图8" loading="lazy">
+      </div>
+    </div>
+    <div class="scroll-row scroll-row-2">
+      <div class="scroll-img-list">
+        <img class="scroll-img" src="./images/bg/111.webp" alt="背景图1" loading="lazy">
+        <img class="scroll-img" src="./images/bg/222.webp" alt="背景图2" loading="lazy">
+        <img class="scroll-img" src="./images/bg/333.webp" alt="背景图3" loading="lazy">
+        <img class="scroll-img" src="./images/bg/444.webp" alt="背景图4" loading="lazy">
+        <img class="scroll-img" src="./images/bg/555.webp" alt="背景图5" loading="lazy">
+        <img class="scroll-img" src="./images/bg/666.webp" alt="背景图6" loading="lazy">
+        <img class="scroll-img" src="./images/bg/777.webp" alt="背景图7" loading="lazy">
+        <img class="scroll-img" src="./images/bg/888.webp" alt="背景图8" loading="lazy">
+      </div>
+    </div>
+    <div class="scroll-row scroll-row-3">
+      <div class="scroll-img-list">
+        <img class="scroll-img" src="./images/bg/111.webp" alt="背景图1" loading="lazy">
+        <img class="scroll-img" src="./images/bg/222.webp" alt="背景图2" loading="lazy">
+        <img class="scroll-img" src="./images/bg/333.webp" alt="背景图3" loading="lazy">
+        <img class="scroll-img" src="./images/bg/444.webp" alt="背景图4" loading="lazy">
+        <img class="scroll-img" src="./images/bg/555.webp" alt="背景图5" loading="lazy">
+        <img class="scroll-img" src="./images/bg/666.webp" alt="背景图6" loading="lazy">
+        <img class="scroll-img" src="./images/bg/777.webp" alt="背景图7" loading="lazy">
+        <img class="scroll-img" src="./images/bg/888.webp" alt="背景图8" loading="lazy">
+      </div>
+    </div>
+  </div>
+
+  <!-- 一级标签切换 -->
+  <div class="main-tab-buttons">
+    <button class="main-tab-btn active" data-target="main-tab-1">薄荷奶绿</button>
+    <button class="main-tab-btn" data-target="main-tab-2">小泡芙</button>
+  </div>
+
+  <!-- 1. 薄荷奶绿容器 -->
+  <div class="main-tab-container active" id="main-tab-1">
+    <div class="sub-tab-buttons">
+      <button class="sub-tab-btn active" data-target="wheel1">武器</button>
+      <button class="sub-tab-btn" data-target="wheel2">远程</button>
+      <button class="sub-tab-btn" data-target="wheel3">英雄</button>
+      <button class="sub-tab-btn" data-target="wheel4">自定义模式</button>
+    </div>
+
+    <!-- 1.1 武器抽卡 -->
+    <div class="gacha-container active" id="wheel1">
+      <button class="gacha-btn" 
+              data-type="weapon" 
+              data-prizes='["飞刀","拳刃","双戟","双刀","双节棍","枪","扇","匕首","横刀","太刀","阔刀","斩马刀","长剑","链剑"]'>
+        抽取武器
+      </button>
+      <div class="result-box">
+        <img class="result-img" src="" alt="抽卡结果">
+        <div class="result-name">未抽取</div>
+      </div>
+    </div>
+
+    <!-- 1.2 远程抽卡 -->
+    <div class="gacha-container" id="wheel2">
+      <button class="gacha-btn" 
+              data-type="remote" 
+              data-prizes='["弓箭","火炮","连弩","鸟铳","五眼铳"]'>
+        抽取远程
+      </button>
+      <div class="result-box">
+        <img class="result-img" src="" alt="抽卡结果">
+        <div class="result-name">未抽取</div>
+      </div>
+    </div>
+
+    <!-- 1.3 英雄抽卡（含F/V技能） -->
+    <div class="gacha-container" id="wheel3">
+      <button class="gacha-btn" 
+              data-type="hero" 
+              data-prizes='["李寻欢","万钧","蓝梦","希拉","张起灵","刘炼","魏轻","哈迪","玉玲珑","季莹莹","胡为","沈妙","殷紫萍","武田忠信","顾清寒","无尘","季沧海","迦南","宁红夜","特木尔","土御门胡桃","天海","妖刀姬","崔三娘","岳山"]'>
+        抽取英雄
+      </button>
+      <div class="result-box">
+        <img class="result-img" src="" alt="抽卡结果">
+        <div class="result-name">未抽取</div>
+      </div>
+
+      <!-- F/V技能转盘 -->
+      <div class="skill-wheel-area">
+        <div class="skill-wheel-card">
+          <h3>F技能转盘</h3>
+          <textarea class="skill-custom-input" placeholder="每行一个内容，示例：&#10;f1&#10;f2&#10;f3"></textarea>
+          <button class="skill-save-btn" data-skill-type="f-skill">保存内容</button>
+          <button class="skill-gacha-btn" data-skill-type="f-skill">抽取F技能</button>
+          <div class="skill-result">
+            <div class="skill-result-name">未抽取</div>
+          </div>
+        </div>
+        <div class="skill-wheel-card">
+          <h3>V技能转盘</h3>
+          <textarea class="skill-custom-input" placeholder="每行一个内容，示例：&#10;v1&#10;v2"></textarea>
+          <button class="skill-save-btn" data-skill-type="v-skill">保存内容</button>
+          <button class="skill-gacha-btn" data-skill-type="v-skill">抽取V技能</button>
+          <div class="skill-result">
+            <div class="skill-result-name">未抽取</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1.4 自定义模式 -->
+    <div class="gacha-container" id="wheel4">
+      <button class="add-custom-btn bg-green">+ 新增自定义抽卡</button>
+      <div class="custom-container-wrapper bg-green-wrapper">
+        <div class="custom-setting-area" data-custom-id="bg-1">
+          <div class="custom-setting-card bg-green-card">
+            <h3>自定义抽卡配置 #1</h3>
+            <div class="setting-item">
+              <label>抽卡按钮名称：</label>
+              <input type="text" class="custom-btn-name" placeholder="示例：武器品质、甲品质、地图">
+            </div>
+            <div class="setting-item">
+              <label>抽卡内容（每行一个）：</label>
+              <textarea class="custom-prize-input" placeholder="请输入要抽取的内容，每行一个&#10;示例：&#10;白甲蓝甲紫甲&#10;白刀蓝刀紫刀&#10;火罗国龙影洞天"></textarea>
+            </div>
+            <div class="setting-item">
+              <label>自定义图片（可选）：</label>
+              <div class="custom-img-upload">
+                <input type="file" class="custom-img-input" multiple accept="image/png,image/jpg,image/jpeg,image/webp">
+                <button class="save-custom-config bg-green-btn">保存所有配置</button>
+              </div>
+            </div>
+          </div>
+          <div class="custom-gacha-area">
+            <button class="custom-gacha-btn bg-green-btn">请先配置抽卡内容</button>
+            <div class="result-box custom-result-box bg-green-box">
+              <img class="result-img custom-result-img" src="" alt="自定义抽卡结果">
+              <div class="result-name custom-result-name">未配置抽卡内容</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 小泡芙容器 -->
+  <div class="main-tab-container" id="main-tab-2">
+    <button class="add-custom-btn bg-pink">+ 新增自定义抽卡</button>
+    <div class="custom-container-wrapper bg-pink-wrapper">
+      <div class="custom-setting-area" data-custom-id="xp-1">
+        <div class="custom-setting-card bg-pink-card">
+          <h3>自定义抽卡配置 #1</h3>
+          <div class="setting-item">
+            <label>抽卡按钮名称：</label>
+            <input type="text" class="custom-btn-name" placeholder="示例：武器品质、甲品质、地图">
+          </div>
+          <div class="setting-item">
+            <label>抽卡内容（每行一个）：</label>
+            <textarea class="custom-prize-input" placeholder="请输入要抽取的内容，每行一个&#10;示例：&#10;白甲蓝甲紫甲&#10;白刀蓝刀紫刀&#10;火罗国龙影洞天"></textarea>
+          </div>
+          <div class="setting-item">
+            <label>自定义图片（可选）：</label>
+            <div class="custom-img-upload">
+              <input type="file" class="custom-img-input" multiple accept="image/png,image/jpg,image/jpeg,image/webp">
+              <button class="save-custom-config bg-pink-btn">保存所有配置</button>
+            </div>
+          </div>
+        </div>
+        <div class="custom-gacha-area">
+          <button class="custom-gacha-btn bg-pink-btn">请先配置抽卡内容</button>
+          <div class="result-box custom-result-box bg-pink-box">
+            <img class="result-img custom-result-img" src="" alt="自定义抽卡结果">
+            <div class="result-name custom-result-name">未配置抽卡内容</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+[build]
+  publish = "." # 发布根目录（静态文件直接部署）
+  command = ""  # 无构建命令
+
+[[headers]]
+  # 静态资源长期缓存，提升加载速度
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  # HTML不缓存，确保更新后及时生效
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  # 确保WebP图片格式被正确识别
+  for = "/*.webp"
+  [headers.values]
+    Content-Type = "image/webp"
+
+[[headers]]
+  # 允许图片跨域加载（可选）
+  for = "/images/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"

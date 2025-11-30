@@ -1,0 +1,587 @@
+/* 全局基础样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "微软雅黑", sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+/* 背景滚动样式 */
+.bg-scroll-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scroll-row {
+  width: 100vw;
+  height: calc(100vh / 3 - 20px);
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.scroll-row::before, .scroll-row::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 50px;
+  height: 100%;
+  z-index: 1;
+}
+.scroll-row::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(245,245,245,1), rgba(245,245,245,0));
+}
+.scroll-row::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(245,245,245,1), rgba(245,245,245,0));
+}
+
+.scroll-img-list {
+  display: flex;
+  width: 200%;
+  animation-duration: 80s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.scroll-row-1 .scroll-img-list,
+.scroll-row-3 .scroll-img-list {
+  animation-name: scrollLeft;
+}
+.scroll-row-2 .scroll-img-list {
+  animation-name: scrollRight;
+}
+
+.scroll-img {
+  height: 100%;
+  margin: 0 15px;
+  object-fit: contain;
+  opacity: 0.2;
+  transition: opacity 0.3s;
+  max-width: 200px;
+  min-width: 100px;
+  border: none;
+  background: none;
+}
+.scroll-img:hover {
+  opacity: 0.4;
+}
+
+@keyframes scrollLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+@keyframes scrollRight {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+
+/* 一级标签样式 */
+.main-tab-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.main-tab-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e0e0e0;
+  color: #333;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.main-tab-btn.active {
+  background-color: #99cc66;
+  color: white;
+  box-shadow: 0 2px 8px rgba(153, 204, 102, 0.4);
+}
+
+/* 二级标签样式 */
+.sub-tab-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.sub-tab-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #e0e0e0;
+  color: #333;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.sub-tab-btn.active {
+  background-color: #ff6600;
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 102, 0, 0.3);
+}
+
+/* 主标签容器 */
+.main-tab-container {
+  display: none;
+  width: 100%;
+  max-width: 1200px;
+  align-items: center;
+  flex-direction: column;
+}
+.main-tab-container.active {
+  display: flex;
+}
+
+/* 通用抽卡容器 */
+.gacha-container {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 1200px;
+}
+.gacha-container.active {
+  display: flex;
+}
+
+/* 通用抽卡按钮 */
+.gacha-btn {
+  padding: 15px 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ff6600;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.gacha-btn:disabled, .custom-gacha-btn:disabled {
+  background-color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.gacha-btn:active:not(:disabled), .custom-gacha-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* 通用结果方框 */
+.result-box {
+  width: 800px;
+  height: 600px;
+  border: 4px solid #ff6600;
+  border-radius: 10px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* 通用结果图片 */
+.result-img {
+  width: 750px;
+  height: 500px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: none; /* 默认隐藏，加载成功后显示 */
+}
+
+/* 通用结果名称 */
+.result-name {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 20px;
+  background: rgba(255,255,255,0.8);
+  padding: 5px 20px;
+  border-radius: 8px;
+}
+
+/* F/V技能小转盘样式 */
+.skill-wheel-area {
+  display: flex;
+  gap: 50px;
+  margin-top: 20px;
+}
+.skill-wheel-card {
+  width: 400px;
+  height: 350px;
+  border: 3px solid #ff6600;
+  border-radius: 8px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 15px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+.skill-wheel-card h3 {
+  font-size: 20px;
+  color: #ff6600;
+  margin-bottom: 5px;
+  text-align: center;
+}
+.skill-custom-input {
+  width: 100%;
+  height: 100px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+}
+.skill-custom-input:focus {
+  border-color: #3399ff;
+}
+.skill-save-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2ecc71;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.skill-save-btn:active {
+  transform: scale(0.98);
+}
+.skill-gacha-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #3399ff;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.skill-result {
+  width: 100%;
+  text-align: center;
+}
+.skill-result-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  background: rgba(255,255,255,0.8);
+  padding: 5px 20px;
+  border-radius: 8px;
+}
+
+/* 自定义按钮样式 - 薄荷奶绿 */
+.add-custom-btn.bg-green {
+  padding: 10px 30px;
+  border: none;
+  border-radius: 8px;
+  background-color: #99cc66;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.add-custom-btn.bg-green:active {
+  transform: scale(0.98);
+}
+
+/* 自定义按钮样式 - 小泡芙 */
+.add-custom-btn.bg-pink {
+  padding: 10px 30px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ff99cc;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.add-custom-btn.bg-pink:active {
+  transform: scale(0.98);
+}
+
+/* 自定义容器包裹层 */
+.custom-container-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  width: 100%;
+  align-items: center;
+}
+
+/* 薄荷奶绿自定义抽卡样式 */
+.custom-setting-card.bg-green-card {
+  width: 400px;
+  border: 3px solid #99cc66;
+  border-radius: 8px;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+.custom-setting-card.bg-green-card h3 {
+  font-size: 22px;
+  color: #99cc66;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.save-custom-config.bg-green-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #99cc66;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.save-custom-config.bg-green-btn:active {
+  transform: scale(0.98);
+}
+.custom-gacha-btn.bg-green-btn {
+  padding: 15px 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #99cc66;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(153, 204, 102, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.custom-result-box.bg-green-box {
+  width: 800px;
+  height: 600px;
+  border-color: #99cc66;
+}
+
+/* 小泡芙自定义抽卡样式 */
+.custom-setting-card.bg-pink-card {
+  width: 400px;
+  border: 3px solid #ff99cc;
+  border-radius: 8px;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+.custom-setting-card.bg-pink-card h3 {
+  font-size: 22px;
+  color: #ff99cc;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.save-custom-config.bg-pink-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #ff99cc;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.save-custom-config.bg-pink-btn:active {
+  transform: scale(0.98);
+}
+.custom-gacha-btn.bg-pink-btn {
+  padding: 15px 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ff99cc;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 153, 204, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.custom-result-box.bg-pink-box {
+  width: 800px;
+  height: 600px;
+  border-color: #ff99cc;
+}
+
+/* 通用自定义抽卡样式 */
+.custom-setting-area {
+  display: flex;
+  gap: 40px;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+}
+.setting-item {
+  margin-bottom: 15px;
+  width: 100%;
+}
+.setting-item label {
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+.custom-btn-name {
+  width: 100%;
+  height: 40px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 16px;
+  outline: none;
+}
+.custom-btn-name:focus {
+  border-color: #3399ff;
+}
+.custom-prize-input {
+  width: 100%;
+  height: 150px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+}
+.custom-prize-input:focus {
+  border-color: #3399ff;
+}
+.custom-img-upload {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.custom-img-input {
+  flex: 1;
+  padding: 5px;
+}
+.custom-gacha-area {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+}
+.custom-result-img {
+  width: 750px;
+  height: 500px;
+}
+.custom-result-name {
+  font-size: 28px;
+}
+
+/* 响应式适配 */
+@media (max-width: 1000px) {
+  .custom-setting-area {
+    flex-direction: column;
+    align-items: center;
+    width: 100vw;
+    padding: 0 10px;
+  }
+  .skill-wheel-area {
+    flex-direction: column;
+    gap: 20px;
+    width: 100vw;
+    padding: 0 10px;
+  }
+  .result-box, .custom-result-box {
+    width: 95vw !important;
+    height: auto !important;
+    min-height: 300px;
+    padding: 15px;
+    box-sizing: border-box;
+  }
+  .result-img, .custom-result-img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px;
+    object-fit: contain;
+  }
+  .skill-wheel-card {
+    width: 95vw !important;
+    height: auto;
+    padding: 15px;
+  }
+  .custom-setting-card {
+    width: 95vw !important;
+    height: auto;
+    padding: 15px;
+  }
+  .gacha-btn, .custom-gacha-btn {
+    padding: 12px 20px !important;
+    font-size: 16px !important;
+    width: 90vw;
+    max-width: 300px;
+  }
+  .main-tab-btn, .sub-tab-btn {
+    padding: 10px 15px !important;
+    font-size: 14px !important;
+  }
+  .scroll-img {
+    max-width: 100px !important;
+    min-width: 60px !important;
+    margin: 0 8px !important;
+  }
+}
