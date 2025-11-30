@@ -24,6 +24,9 @@ const prizeImgMap = {
   }
 };
 
+// Netlify站点域名（替换为你的实际域名！）
+const NETLIFY_DOMAIN = "https://buhuoinielan.netlify.app";
+
 // 页面DOM加载完成后立即执行（优化执行顺序）
 document.addEventListener('DOMContentLoaded', function() {
   // 优先执行核心功能
@@ -108,7 +111,7 @@ function bindSubTabSwitch() {
 }
 
 /**
- * 3. 核心：武器/远程/英雄抽卡逻辑（修复Netlify路径+错误兜底）
+ * 3. 核心：武器/远程/英雄抽卡逻辑（修改为Netlify绝对路径 + 重试逻辑）
  */
 function bindMainGachaEvent() {
   const gachaBtns = document.querySelectorAll('.gacha-btn:not(.skill-gacha-btn):not(.custom-gacha-btn)');
@@ -134,20 +137,32 @@ function bindMainGachaEvent() {
           const selectedPrize = prizes[randomIndex];
           // 获取图片名（映射）
           const imgName = prizeImgMap[type][selectedPrize];
-          // 修复：使用相对路径（适配Netlify）
-          const imgPath = `./images/${type}/${imgName}.webp`;
+          // 核心修改：使用Netlify绝对路径
+          const imgPath = `${NETLIFY_DOMAIN}/images/${type}/${imgName}.webp`;
 
-          // 加载图片（确保加载成功后显示）
+          // 加载图片（确保加载成功后显示 + 重试逻辑）
           const img = new Image();
           img.onload = function() {
             resultImg.src = imgPath;
             resultImg.alt = selectedPrize;
             resultImg.style.display = 'block'; // 加载成功才显示
             resultName.textContent = selectedPrize;
+            // 强制触发重绘，避免渲染延迟
+            resultImg.offsetHeight;
           };
           img.onerror = function() {
-            // 加载失败仅提示文字，不显示占位图
-            resultName.textContent = `${selectedPrize}（图片缺失）`;
+            // 第一次加载失败，重试一次
+            const retryImg = new Image();
+            retryImg.onload = function() {
+              resultImg.src = imgPath;
+              resultImg.style.display = 'block';
+              resultName.textContent = selectedPrize;
+            };
+            retryImg.onerror = function() {
+              // 最终失败仅提示文字
+              resultName.textContent = `${selectedPrize}（图片缺失）`;
+            };
+            retryImg.src = imgPath;
           };
           // 强制触发加载
           img.src = imgPath;
